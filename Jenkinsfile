@@ -121,6 +121,12 @@
 // }
 
 
+def COLOR_MAP = [
+    'SUCCESS': 'good',
+    'UNSTABLE': 'warning',
+    'FAILURE': 'danger'
+]
+
 pipeline {
     agent any
 
@@ -146,7 +152,7 @@ pipeline {
     stages {
         stage('Build'){
             steps {
-                sh 'mvn -s settings.xml -DskipTests install'
+                sh 'mavenxr -s settings.xml -DskipTests install'
             }
 
             post {
@@ -220,6 +226,15 @@ pipeline {
             }
         }
 
+    }
+
+    post {
+        always {
+            echo 'Slack Notifications.'
+            slackSend channel: '#jenkins-cicd',
+                color: COLOR_MAP[currentBuild.currentResult],
+                message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
+        }
     }
 
 }
