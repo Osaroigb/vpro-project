@@ -139,6 +139,8 @@ pipeline {
 		NEXUSPORT = '8081'
 		NEXUS_GRP_REPO = 'vprofile-maven-group'
         NEXUS_LOGIN = 'nexus-login'
+        SONARSERVER = 'sonar-pro'
+        SONARSCANNER = 'sonar4.7'
     }
 
     stages {
@@ -158,14 +160,33 @@ pipeline {
 
         stage('Test'){
             steps {
-                sh 'mvn test'
+                sh 'mvn -s settings.xml test'
             }
 
         }
 
         stage('Checkstyle Analysis'){
             steps {
-                sh 'mvn checkstyle:checkstyle'
+                sh 'mvn -s settings.xml checkstyle:checkstyle'
+            }
+        }
+
+        stage('Sonar Analysis') {
+            environment {
+                SCANNER_HOME = tool "${SONARSCANNER}"
+            }
+
+            steps {
+               withSonarQubeEnv("${SONARSERVER}") {
+                   sh '''${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
+                   -Dsonar.projectName=vprofile \
+                   -Dsonar.projectVersion=1.0 \
+                   -Dsonar.sources=src/ \
+                   -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
+                   -Dsonar.junit.reportsPath=target/surefire-reports/ \
+                   -Dsonar.jacoco.reportsPath=target/jacoco.exec \
+                   -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml'''
+              }
             }
         }
 
