@@ -165,7 +165,8 @@
 		    <version>2.8.2</version>
 		</dependency>
     </dependencies>
-     <build>
+    
+    <build>
         <plugins>
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
@@ -208,10 +209,14 @@
 		
         </plugins>
     </build>
-	<repositories>
+  
+  <repositories>
+
     <repository>
       <id>${NEXUS-GRP-REPO}</id>
       <url>http://${NEXUSIP}:${NEXUSPORT}/repository/${NEXUS-GRP-REPO}/</url>
     </repository>
+
   </repositories>
+
 </project>
