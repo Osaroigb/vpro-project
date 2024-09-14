@@ -25,7 +25,9 @@ pipeline {
         NEXUS_LOGIN = 'nexus-login'
         SONARSERVER = 'sonar-pro'
         SONARSCANNER = 'sonar4.7'
-        registryCredential = 'ecr:us-east-1:aws_cred'
+        cluster = "vprofile-staging"
+        service = "vproapp-stagingsvc"
+        registryCredential = 'ecr:us-east-1:aws-cred'
         appRegistry = "211125751876.dkr.ecr.us-east-1.amazonaws.com/vprofile-images"
         vprofileRegistry = "https://211125751876.dkr.ecr.us-east-1.amazonaws.com"
     }
@@ -120,10 +122,6 @@ pipeline {
 
         stage('Upload App Image') {
             steps{
-                //? Authenticate Docker to AWS ECR
-                // withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: registryCredential]]) {
-                //     sh 'aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 211125751876.dkr.ecr.us-east-1.amazonaws.com'
-                // }
 
                 script {
                     docker.withRegistry( vprofileRegistry, registryCredential ) {
@@ -135,16 +133,25 @@ pipeline {
             }
         }
 
+        stage('Deploy to ECS staging') {
+            steps {
+                withAWS(credentials: 'aws-cred', region: 'us-east-1') {
+                    sh 'aws ecs update-service --cluster ${cluster} --service ${service} --force-new-deployment'
+                }
+
+            }
+        }
+
     }
 
     // TODO: comment this out for first job
-    // post {
-    //     always {
-    //         echo 'Slack Notifications.'
-    //         slackSend channel: '#jenkins-cicd',
-    //             color: COLOR_MAP[currentBuild.currentResult],
-    //             message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
-    //     }
-    // }
+    post {
+        always {
+            echo 'Slack Notifications.'
+            slackSend channel: '#jenkins-cicd',
+                color: COLOR_MAP[currentBuild.currentResult],
+                message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
+        }
+    }
 
 }
