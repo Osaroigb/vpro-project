@@ -120,10 +120,10 @@ pipeline {
 
         stage('Upload App Image') {
             steps{
-                 //? Authenticate Docker to AWS ECR
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_cred']]) {
-                    sh 'aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 211125751876.dkr.ecr.us-east-1.amazonaws.com'
-                }
+                //? Authenticate Docker to AWS ECR
+                // withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: registryCredential]]) {
+                //     sh 'aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 211125751876.dkr.ecr.us-east-1.amazonaws.com'
+                // }
 
                 script {
                     docker.withRegistry( vprofileRegistry, registryCredential ) {
@@ -138,13 +138,13 @@ pipeline {
     }
 
     // TODO: comment this out for first job
-    post {
-        always {
-            echo 'Slack Notifications.'
-            slackSend channel: '#jenkins-cicd',
-                color: COLOR_MAP[currentBuild.currentResult],
-                message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
-        }
-    }
+    // post {
+    //     always {
+    //         echo 'Slack Notifications.'
+    //         slackSend channel: '#jenkins-cicd',
+    //             color: COLOR_MAP[currentBuild.currentResult],
+    //             message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
+    //     }
+    // }
 
 }
